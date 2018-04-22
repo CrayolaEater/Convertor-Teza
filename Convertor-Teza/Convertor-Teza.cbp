@@ -40,11 +40,12 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add option="-DSFML_STATIC" />
-			<Add directory="C:/Program Files (x86)/CodeBlocks/sfml/include" />
+			<Add directory="C:/Users/Inculet/Desktop/GitHub/Projects/Convertor-Teza/sfml/include" />
 		</Compiler>
 		<Linker>
-			<Add directory="C:/Program Files (x86)/CodeBlocks/sfml/lib" />
+			<Add directory="C:/Users/Inculet/Desktop/GitHub/Projects/Convertor-Teza/sfml/lib" />
 		</Linker>
+		<Unit filename="Config.in" />
 		<Unit filename="main.cpp" />
 		<Unit filename="sfml-audio-2.dll" />
 		<Unit filename="sfml-audio-d-2.dll" />
