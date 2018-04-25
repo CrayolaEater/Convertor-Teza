@@ -10,19 +10,79 @@ Font FontButoane;
 Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=10;
+string TText;
 class Buton;
+class SpatiuDestinatTextului;
+vector<Text> TexteStatice;
 vector<Buton> Butoane;
+vector<SpatiuDestinatTextului> SpatiiDeScrisText;
 void Click()
 {
     cout<<"MERGEEE"<<'\n';
 }
+class SpatiuDestinatTextului
+{
+public:
+    Text TextulScris;
+    int x,y, lungime,latime;
+    RectangleShape Forma;
+    Color culoare;
+    int pos_text_x, pos_text_y, dimensiuneText;
+
+    void CreeazaForma()
+    {
+        Forma.setSize(Vector2f(lungime,latime));
+        Forma.setPosition(Vector2f(x,y));
+        Forma.setFillColor(culoare);
+    }
+    void CreeazaTextul()
+    {
+        TextulScris.setCharacterSize(dimensiuneText);
+        TextulScris.setFillColor(Color::Black);
+        TextulScris.setFont(FontButoane);
+        TextulScris.setPosition(Vector2f(pos_text_x+x,pos_text_y+y));
+    }
+public:
+    void DeseneazaSpatiuText()
+    {
+        Fereastra.draw(Forma);
+        Fereastra.draw(TextulScris);
+    }
+    string TextScris;
+    SpatiuDestinatTextului(int pos_x,int pos_y,int lg,int lat,Color Culoare,int pos_t_x,int pos_t_y,int dim_text)
+    {
+        x=pos_x;
+        lungime=lg;
+        latime=lat;
+        y=pos_y;
+        culoare=Culoare;
+        pos_text_x=pos_t_x;
+        pos_text_y=pos_t_y;
+        dimensiuneText=dim_text;
+        CreeazaTextul();
+        CreeazaForma();
+    }
+    void ActualizeazaTextul()
+    {
+        TextulScris.setString(TextScris);
+    }
+    bool MouseEstePeste()
+    {
+        if (Forma.getGlobalBounds().contains(Fereastra.mapPixelToCoords(PozitieMouse)))
+        {
+            return true;
+        }
+        return false;
+    }
+};
 class Buton
 {
 private:
-    int x,y,lungime,latime,text_dimensiune, textOfsetX,textOfsetY;
     Text text;
-    Color culoare;
+    Color culoare, Evidentiat;
     RectangleShape FormaButon;
+    Uint8 CantitateCuloareRedusa=20;
     void CreazaForma()
     {
         FormaButon.setPosition(x,y);
@@ -37,6 +97,7 @@ private:
         text.setPosition(Vector2f(x+textOfsetX,y+textOfsetY));
     }
 public:
+    int x,y,lungime,latime,text_dimensiune, textOfsetX,textOfsetY;
     void (*Functie)(void);
     bool MousePesteButon, Selectat;
     Buton(int pos_x, int pos_y, int lg, int lat, Color cul,string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY)
@@ -61,11 +122,8 @@ public:
     void MousePeste()
     {
         MousePesteButon=true;
-        Color culoareMousePeste=Color(culoare.r-20,culoare.g-20,culoare.b-20);
-        Color culoareText=text.getFillColor();
-        Color culoareTextMousePeste=Color(culoareText.r-20,culoareText.g-20,culoareText.g-20);
-        FormaButon.setFillColor(culoareMousePeste);
-        text.setFillColor(culoareTextMousePeste);
+        Evidentiat.a=culoare.a/8;
+        FormaButon.setFillColor(Evidentiat);
     }
     void MouseNormal()
     {
@@ -73,24 +131,19 @@ public:
         MousePesteButon=false;
         FormaButon.setFillColor(culoare);
     }
-    Vector2i PozitieButon()
-    {
-        Vector2i pos;
-        pos.x=x;
-        pos.y=y;
-        return pos;
-    }
-    int lungimeButon()
-    {
-        return lungime;
-    }
-    int latimeButon()
-    {
-        return latime;
-    }
     void CandFacemClick()
     {
         Functie();
+    }
+    bool MouseEstePeste()
+    {
+        if (FormaButon.getGlobalBounds().contains(Fereastra.mapPixelToCoords(PozitieMouse)))
+        {
+            MousePeste();
+            return true;
+        }
+        MouseNormal();
+        return false;
     }
 };
 Buton CreezaButon(int pos_x, int pos_y, int lg, int lat, Color cul,string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY,void(*functie)(void))
@@ -100,40 +153,104 @@ Buton CreezaButon(int pos_x, int pos_y, int lg, int lat, Color cul,string txt, i
     Butoane.push_back(Bt);
     return Bt;
 }
+SpatiuDestinatTextului CreeazaSpatiuPentruScris(int pos_x,int pos_y,int lg,int lat,Color Culoare,int pos_t_x,int pos_t_y,int dim_text)
+{
+    SpatiuDestinatTextului SpTxT(pos_x,pos_y,lg,lat,Culoare,pos_t_x,pos_t_y,dim_text);
+    SpatiiDeScrisText.push_back(SpTxT);
+    return SpTxT;
+}
 void DeseneazaButoane()
 {
-    for(int i=0;i<Butoane.size();i++)
+    for(int i=0; i<Butoane.size(); i++)
     {
         Butoane[i].DeseneazaButon();
     }
 }
+void DeseneazaSpatiiScris()
+{
+    for(int i=0; i<SpatiiDeScrisText.size(); i++)
+    {
+        SpatiiDeScrisText[i].DeseneazaSpatiuText();
+    }
+}
 void VerificaDacaButoaneleSuntSelectate()
 {
-    for(int i=0; i<Butoane.size();i++)
+    for(int i=0; i<Butoane.size(); i++)
     {
-        Vector2i ButonPos=Butoane[i].PozitieButon();
-        if(PozitieMouse.x>=ButonPos.x&&PozitieMouse.x<=Butoane[i].lungimeButon()&&PozitieMouse.y>=ButonPos.y&&PozitieMouse.y<=Butoane[i].latimeButon())
+        if(Butoane[i].MouseEstePeste())
         {
-            Butoane[i].MousePeste();
             if(Mouse::isButtonPressed(Mouse::Left))
             {
                 Butoane[i].CandFacemClick();
             }
         }
-        else
+    }
+}
+void VerificaDacaTextulEsteSelectat()
+{
+    for(int i=0; i<SpatiiDeScrisText.size(); i++)
+    {
+        if(SpatiiDeScrisText[i].MouseEstePeste())
         {
-            Butoane[i].MouseNormal();
+            if(Mouse::isButtonPressed(Mouse::Left))
+            {
+                SpatiulDeTextCurentSelectat=i;
+                if(SpatiiDeScrisText[i].TextScris.size()==0)
+                {
+                    TText.erase(TText.begin(),TText.end());
+                }
+                else
+                {
+                    TText=SpatiiDeScrisText[i].TextScris;
+                }
+            }
         }
     }
 }
-
+void VerificaTextIntrodusTastatura(Event event)
+{
+    if (event.type == Event::TextEntered)
+    {
+        if ((event.text.unicode <= 57&& event.text.unicode>=48 && SpatiulDeTextCurentSelectat>-1)||(SpatiulDeTextCurentSelectat>-1&&event.text.unicode==46))
+        {
+            if(TText.size()<=MaxCharactereTextIntrodus)
+            {
+                TText+=static_cast<char>(event.text.unicode);
+                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
+                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
+            }
+            cout<<TText<<'\n';
+            //cout << "ASCII character typed: " << static_cast<char>(event.text.unicode) << std::endl;
+        }
+    }
+}
+void CreeazaStaticText(int pos_x,int pos_y, int dimensiune,string txt,Color culoare)
+{
+    Text text;
+    text.setFont(FontButoane);
+    text.setPosition(Vector2f(pos_x,pos_y));
+    text.setCharacterSize(dimensiune);
+    text.setFillColor(culoare);
+    text.setString(txt);
+    TexteStatice.push_back(text);
+}
+void DeseneazaTexteleStatice()
+{
+    for(int i =0; i<TexteStatice.size();i++)
+    {
+        Fereastra.draw(TexteStatice[i]);
+    }
+}
 int main()
 {
-    FontButoane.loadFromFile("gibi_tm.ttf");
+    FontButoane.loadFromFile("BALLSONTHERAMPAGE.ttf");
     ImgFundal.loadFromFile("imagine_fundal.png");
     ImagineFundal.setTexture(ImgFundal);
-    ImagineFundal.setScale(Vector2f(0.75,0.8));
-    Buton B=CreezaButon(1 ,1, 100,70,Color::Blue,"Buton",20,30,20,Click);
+    ImagineFundal.setScale(Vector2f(0.9,.8));
+    //Buton B=CreezaButon(2,30, 100,70,Color::Blue,"Buton",20,30,20,Click);
+    SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,30,Color::Blue,5,-8,35);
+    CreeazaStaticText(10,117,35,"Valoare:",Color::White);
+    CreeazaStaticText(230,1,80,"Converter",Color::White);
     Fereastra.create(VideoMode(800,800),"Converter");
     while (Fereastra.isOpen())
     {
@@ -142,12 +259,18 @@ int main()
         while (Fereastra.pollEvent(event))
         {
             if (event.type == Event::Closed)
+            {
                 Fereastra.close();
+            }
+            VerificaTextIntrodusTastatura(event);
         }
-        VerificaDacaButoaneleSuntSelectate();
         Fereastra.clear();
+        VerificaDacaButoaneleSuntSelectate();
+        VerificaDacaTextulEsteSelectat();
         Fereastra.draw(ImagineFundal);
         DeseneazaButoane();
+        DeseneazaSpatiiScris();
+        DeseneazaTexteleStatice();
         Fereastra.display();
     }
     return 0;
