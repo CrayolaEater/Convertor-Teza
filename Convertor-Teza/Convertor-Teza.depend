@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1524696221 source:c:\users\inculet\desktop\github\projects\convertor-teza\convertor-teza\main.cpp
+1525300167 source:c:\users\inculet\desktop\github\projects\convertor-teza\convertor-teza\main.cpp
 	<SFML/Graphics.hpp>
 	<vector>
 	<fstream>
 	<iostream>
+	<string>
 
 1486739997 c:\users\inculet\desktop\github\projects\convertor-teza\sfml-2.4.2\include\sfml\graphics.hpp
 	<SFML/Window.hpp>

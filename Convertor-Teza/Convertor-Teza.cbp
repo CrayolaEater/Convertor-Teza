@@ -46,6 +46,7 @@
 			<Add directory="C:/Users/Inculet/Desktop/GitHub/Projects/Convertor-Teza/sfml/lib" />
 		</Linker>
 		<Unit filename="Config.in" />
+		<Unit filename="Config.out" />
 		<Unit filename="main.cpp" />
 		<Unit filename="sfml-audio-2.dll" />
 		<Unit filename="sfml-audio-d-2.dll" />
