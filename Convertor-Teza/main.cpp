@@ -6,15 +6,16 @@
 using namespace std;
 using namespace sf;
 fstream ConfigInput;
+enum Marime{Bacnota,Dimensiune,Volum,FaraMasura};
 float ValoareNouaConvertor;
 RenderWindow Fereastra, SchimbaValoarea;
 Font FontButoane;
-Text ValoarePrecedenta;
+Text ValoarePrecedenta,TipMasura;
 Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
-bool DeschisFereastraSchimbaValoarea;
-int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=10,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1;
+bool DeschisFereastraSchimbaValoarea,EsteButon;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1;
 string TText;
 class Buton;
 class SpatiuDestinatTextului;
@@ -29,14 +30,7 @@ vector<SpatiuDestinatTextului> SpatiiDeScrisText;
 vector<float>ValoriConvertor;
 class SpatiuDestinatTextului
 {
-public:
-    Text TextulScris;
-    Texture textura;
-    int x,y, lungime,latime;
-    RectangleShape Forma;
-    Color culoare;
-    int pos_text_x, pos_text_y, dimensiuneText;
-
+private:
     void CreeazaForma()
     {
         Forma.setSize(Vector2f(lungime,latime));
@@ -50,8 +44,24 @@ public:
         TextulScris.setFont(FontButoane);
         TextulScris.setPosition(Vector2f(pos_text_x+x,pos_text_y+y));
     }
+    Color culoare;
+    Texture textura;
 public:
-    int FereastraID;
+    Text TextulScris;
+    int x,y, lungime,latime;
+    RectangleShape Forma;
+    bool Apasat;
+    void(*Functie)(void);
+    int pos_text_x, pos_text_y, dimensiuneText, FereastraID;
+    string TextScris;
+    void CandApasamEnter()
+    {
+        Functie();
+    }
+    void GolesteSpatiuDeCharactere()
+    {
+        TextulScris.setString("");
+    }
     void DeseneazaSpatiuText()
     {
         Fereastra.draw(Forma);
@@ -62,7 +72,6 @@ public:
         SchimbaValoarea.draw(Forma);
         SchimbaValoarea.draw(TextulScris);
     }
-    string TextScris;
     SpatiuDestinatTextului(int pos_x,int pos_y,int lg,int lat,Color Culoare,int pos_t_x,int pos_t_y,int dim_text,string textuRa)
     {
         textura.loadFromFile(textuRa);
@@ -82,6 +91,17 @@ public:
     {
         TextulScris.setString(TextScris);
     }
+    void Normal()
+    {
+        Forma.setFillColor(Color::White);
+        Apasat=false;
+    }
+    void MouseClick()
+    {
+        Color Grey(183,183,183);
+        Forma.setFillColor(Grey);
+        Apasat=true;
+    }
     bool MouseEstePeste()
     {
         if(FereastraCurentaID==1)
@@ -92,7 +112,10 @@ public:
                 Forma.setFillColor(Grey);
                 return true;
             }
-            Forma.setFillColor(Color::White);
+            if(!Apasat)
+            {
+                Forma.setFillColor(Color::White);
+            }
             return false;
         }
         else
@@ -103,7 +126,11 @@ public:
                 Forma.setFillColor(Grey);
                 return true;
             }
-            Forma.setFillColor(Color::White);
+            if(!Apasat)
+            {
+                Forma.setFillColor(Color::White);
+            }
+            return false;
         }
     }
 };
@@ -127,16 +154,14 @@ private:
         text.setPosition(Vector2f(x+textOfsetX,y+textOfsetY));
     }
 public:
-    void caca()
-    {
-        printf("cacca");
-    }
+    Marime TipMarime;
     Text text;
     int x,y,lungime,latime,text_dimensiune, textOfsetX,textOfsetY,IndiceValoare,FereastraID;
     void (*Functie)(void);
     bool MousePesteButon, Selectat,Apasat;
-    Buton(int pos_x, int pos_y, int lg, int lat, string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY,string stringImagine,int indice_valoare)
+    Buton(int pos_x, int pos_y, int lg, int lat, string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY,string stringImagine,int indice_valoare,Marime tip_marime)
     {
+        TipMarime=tip_marime;
         textura.loadFromFile(stringImagine);
         x=pos_x;
         y=pos_y;
@@ -201,18 +226,19 @@ public:
         }
     }
 };
-Buton CreezaButon(int pos_x, int pos_y, int lg, int lat, string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY,void(*functie)(void),string imagine,int indiceValoare,int IDfereastra)
+Buton CreezaButon(int pos_x, int pos_y, int lg, int lat, string txt, int dimensiune_text, int text_ofsetX, int text_ofsetY,void(*functie)(void),string imagine,int indiceValoare,int IDfereastra,Marime tip_marime)
 {
-    Buton Bt(pos_x, pos_y,lg,lat,txt,dimensiune_text,text_ofsetX,text_ofsetY,imagine,indiceValoare);
+    Buton Bt(pos_x, pos_y,lg,lat,txt,dimensiune_text,text_ofsetX,text_ofsetY,imagine,indiceValoare,tip_marime);
     Bt.Functie=functie;
     Bt.FereastraID=IDfereastra;
     Butoane.push_back(Bt);
     return Bt;
 }
-SpatiuDestinatTextului CreeazaSpatiuPentruScris(int pos_x,int pos_y,int lg,int lat,Color Culoare,int pos_t_x,int pos_t_y,int dim_text,string imagine,int IDfereastra)
+SpatiuDestinatTextului CreeazaSpatiuPentruScris(int pos_x,int pos_y,int lg,int lat,Color Culoare,int pos_t_x,int pos_t_y,void(*functie)(void),int dim_text,string imagine,int IDfereastra)
 {
     SpatiuDestinatTextului SpTxT(pos_x,pos_y,lg,lat,Culoare,pos_t_x,pos_t_y,dim_text,imagine);
     SpTxT.FereastraID=IDfereastra;
+    SpTxT.Functie=functie;
     SpatiiDeScrisText.push_back(SpTxT);
     return SpTxT;
 }
@@ -246,12 +272,29 @@ void DeseneazaSpatiiScris()
         }
     }
 }
+void VerificaTipulMasuriiButoanelor(int indice)
+{
+    if(Butoane[indice].FereastraID==1)
+    {
+        if(Butoane[indice].TipMarime==Bacnota)
+        {
+            TipMasura.setString("RON");
+        }
+        else if(Butoane[indice].TipMarime==Dimensiune)
+        {
+            TipMasura.setString("Metri");
+        }
+    }
+}
 void VerificaDacaButoaneleSuntSelectate()
 {
+    bool ok=false;
     for(int i=0; i<Butoane.size(); i++)
     {
         if(Butoane[i].MouseEstePeste())
         {
+            ok=true;
+            VerificaTipulMasuriiButoanelor(i);
             if(Mouse::isButtonPressed(Mouse::Left)&&!Butoane[i].Apasat)
             {
                 IndiceButonSelectat=i;
@@ -269,6 +312,10 @@ void VerificaDacaButoaneleSuntSelectate()
             IndiceButonSelectat=-1;
             Butoane[i].Apasat=false;
         }
+        if(!ok)
+        {
+            TipMasura.setString("");
+        }
     }
 }
 void VerificaDacaTextulEsteSelectat()
@@ -277,9 +324,10 @@ void VerificaDacaTextulEsteSelectat()
     {
         if(SpatiiDeScrisText[i].MouseEstePeste())
         {
-            if(Mouse::isButtonPressed(Mouse::Left))
+            if(Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
             {
                 SpatiulDeTextCurentSelectat=i;
+                SpatiiDeScrisText[i].MouseClick();
                 if(SpatiiDeScrisText[i].TextScris.size()==0)
                 {
                     TText.erase(TText.begin(),TText.end());
@@ -288,6 +336,17 @@ void VerificaDacaTextulEsteSelectat()
                 {
                     TText=SpatiiDeScrisText[i].TextScris;
                 }
+            }
+            else if(!Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
+            {
+                SpatiiDeScrisText[i].Normal();
+            }
+        }
+        else
+        {
+            if(!SpatiiDeScrisText[i].Apasat)
+            {
+                SpatiiDeScrisText[i].Normal();
             }
         }
     }
@@ -370,9 +429,31 @@ void AfiseazaValoriConvertor()
     }
     ConfigInput.close();
 }
+void VerificaDacaTextulIntrodusEsteCorect()
+{
+    for(int i =0; i<TText.size(); i++)
+    {
+        if(TText[i]=='.')
+        {
+            return;
+        }
+    }
+    TText+=".0";
+    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
+    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
+}
 void VerificaTastaEnterCandTextulEsteIntrodus()
 {
-
+    if(SpatiulDeTextCurentSelectat>-1)
+    {
+        if(Keyboard::isKeyPressed(Keyboard::Return))
+        {
+            VerificaDacaTextulIntrodusEsteCorect();
+            SpatiiDeScrisText[SpatiulDeTextCurentSelectat].CandApasamEnter();
+            SpatiiDeScrisText[SpatiulDeTextCurentSelectat].Normal();
+            SpatiulDeTextCurentSelectat=-1;
+        }
+    }
 }
 string FloatToString(float nr);
 void ActualizeazaValorileButoanelor()
@@ -386,74 +467,110 @@ void ActualizeazaValorileButoanelor()
         }
     }
 }
-void StergeElementeleDinFereastraSecundara()
-{
-    for(int i=0; i<TexteStatice.size(); i++)
-    {
-        if(TexteStatice[i].FereastraID==2)
-        {
-            TexteStatice.erase(TexteStatice.begin()+i,TexteStatice.begin()+i+1);
-        }
-    }
-    for(int i=0 ; i<SpatiiDeScrisText.size();i++)
-    {
-        if(SpatiiDeScrisText[i].FereastraID==2)
-        {
-            SpatiiDeScrisText.erase(SpatiiDeScrisText.begin()+i,SpatiiDeScrisText.begin()+i+1);
-        }
-    }
-}
-void DeschideFereastraDeSchimbatValoarea()
-{
-    CreeazaStaticText(3,5,30,"Valoare Precedenta:",Color::White,2);
-    CreeazaStaticText(40,30,30,FloatToString(ValoriConvertor[Butoane[IndiceButonSelectat].IndiceValoare]),Color::Green,2);
-    CreeazaStaticText(3,55,30,"Valoare Noua:",Color::White,2);
-    SpatiuDestinatTextului ValoareNoua=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,0,0,30,"butoane/LocScris_imagine.png",2);
-    SchimbaValoarea.create(VideoMode(300,300),"Schimba Valoarea");
-    DeschisFereastraSchimbaValoarea=true;
-    FereastraCurentaID=2;
-}
+void DeschideFereastraDeSchimbatValoarea();
 void ClickSaModificeValoareConvertor()
 {
     PozitieValoareDeModificat=Butoane[IndiceButonSelectat].IndiceValoare;
-    cout<<"butonul "<<IndiceButonSelectat<<" trebuie sa modifice valoarea de pe "<<Butoane[IndiceButonSelectat].IndiceValoare<<'\n';
+    //cout<<"butonul "<<IndiceButonSelectat<<" trebuie sa modifice valoarea de pe "<<Butoane[IndiceButonSelectat].IndiceValoare<<'\n';
     if(!DeschisFereastraSchimbaValoarea)
     {
         DeschideFereastraDeSchimbatValoarea();
-        cout<<"MERGEEE"<<'\n';
     }
 }
 string FloatToString(float nr)
 {
-    vector<int> v;
-    v.empty();
-    string cc;
-    cc.empty();
-    int nr2=nr;
-    int cnr2=nr2;
-    while(cnr2)
-    {
-        v.push_back(cnr2%10);
-        cnr2/=10;
-    }
-    for(int i=v.size()-1; i>=0; i--)
-    {
-        cc+=v[i]+48;
-    }
-    cc+='.';
-    while(nr)
-    {
-        nr-=nr2;
-        nr*=10;
-        nr2=nr;
-        cc+=nr2+48;
-    }
-    cc.erase(cc.begin()+v.size()+4,cc.end());
+    char cc[10];
+    sprintf(cc,"%.3f",nr);
     return cc;
+}
+float StringToFloat(string sir)
+{
+    float nrFloat;
+    float ajutator=1;
+    float dupaVirgula=0;
+    float zecimale=10;
+    int dim=sir.size();
+    int nrInt=0;
+    int indice=0;
+    while(sir[indice]!='.')
+    {
+        nrInt=nrInt*10+sir[indice]-48;
+        indice++;
+    }
+    indice++;
+    nrFloat=nrInt;
+    while(indice<dim)
+    {
+        float nrr=sir[indice]-48;
+        ajutator=(ajutator/zecimale)*nrr;
+        dupaVirgula+=ajutator;
+        ajutator=1;
+        zecimale*=10;
+        indice++;
+    }
+    nrFloat+=dupaVirgula;
+    return nrFloat;
 }
 void Click2()
 {
     cout<<"MERGEEE"<<'\n';
+}
+void GolesteToateSpatiileDeScrisDinFereastraSecundara()
+{
+    for(int i=0; i<SpatiiDeScrisText.size(); i++)
+    {
+        if(SpatiiDeScrisText[i].FereastraID==2)
+        {
+            SpatiiDeScrisText[i].Normal();
+        }
+    }
+}
+void RegulaDeTreiSimpla()
+{
+    for(int i=0; i<ValoriConvertor.size(); i++)
+    {
+        for(int i =0; i<Butoane.size(); i++)
+        {
+            if(Butoane[i].FereastraID==1&&Butoane[i].IndiceValoare>=0)
+            {
+                Butoane[i].text.setString(FloatToString(ValoriConvertor[Butoane[i].IndiceValoare]*ValoareNouaConvertor));
+                //cout<<"Butonul "<<i<<" are indicele:"<<Butoane[i].IndiceValoare<<'\n';
+            }
+        }
+    }
+}
+void FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul()
+{
+    ValoareNouaConvertor=StringToFloat(TText);
+    RegulaDeTreiSimpla();
+    cout<<ValoareNouaConvertor<<endl;
+}
+void DeschideFereastraDeSchimbatValoarea()
+{
+    ValoarePrecedenta.setString(FloatToString(ValoriConvertor[Butoane[IndiceButonSelectat].IndiceValoare]));
+    SchimbaValoarea.create(VideoMode(300,300),"Schimba Valoarea");
+    DeschisFereastraSchimbaValoarea=true;
+    FereastraCurentaID=2;
+}
+void SeteazaOValoareNouaInConvertor()
+{
+    ValoareNouaConvertor=StringToFloat(TText);
+    ModificaValoareInConvertor(PozitieValoareDeModificat,ValoareNouaConvertor);
+    ActualizeazaValorileButoanelor();
+    SchimbaValoarea.close();
+}
+void SeteazaTextValoarePrecedentaConvertor()
+{
+    TipMasura.setFont(FontButoane);
+    TipMasura.setCharacterSize(30);
+    TipMasura.setFillColor(Color::Yellow);
+    TipMasura.setPosition(Vector2f(180,150));
+    CreeazaStaticText(3,5,30,"Valoare Precedenta:",Color::White,2);
+    CreeazaStaticText(3,55,30,"Valoare Noua:",Color::White,2);
+    ValoarePrecedenta.setCharacterSize(30);
+    ValoarePrecedenta.setFont(FontButoane);
+    ValoarePrecedenta.setFillColor(Color::Green);
+    ValoarePrecedenta.setPosition(Vector2f(40,30));
 }
 int main()
 {
@@ -463,15 +580,17 @@ int main()
     CitesteValoriConvertor();
     ModificaValoareInConvertor(2,3.3333);
     ImagineFundal.setScale(Vector2f(0.9,.8));
-    Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_euro.png",0,1);
+    Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_euro.png",0,1,Bacnota);
     //Buton B_Euro2=CreezaButon(1,1, 200,70,"0.000",30,10,0,Click2,"butoane/buton_euro.png",0,2);
-    Buton B_Dolar=CreezaButon(220,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_dolar.png",1,1);
-    Buton B_LiraSterlina=CreezaButon(430,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_lira.png",2,1);
-    Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_franc.png",3,1);
-    SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,33,"butoane/LocScris_imagine.png",1);
+    Buton B_Dolar=CreezaButon(220,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_dolar.png",1,1,Bacnota);
+    Buton B_LiraSterlina=CreezaButon(430,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_lira.png",2,1,Bacnota);
+    Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_franc.png",3,1,Bacnota);
+    SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
+    SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
     CreeazaStaticText(250,1,80,"Converter",Color::White,1);
     Fereastra.create(VideoMode(840,800),"Converter");
+    SeteazaTextValoarePrecedentaConvertor();
     ActualizeazaValorileButoanelor();
     while (Fereastra.isOpen())
     {
@@ -488,10 +607,12 @@ int main()
         Fereastra.clear();
         VerificaDacaButoaneleSuntSelectate();
         VerificaDacaTextulEsteSelectat();
+        VerificaTastaEnterCandTextulEsteIntrodus();
         Fereastra.draw(ImagineFundal);
         DeseneazaButoane();
         DeseneazaSpatiiScris();
         DeseneazaTexteleStatice();
+        Fereastra.draw(TipMasura);
         Fereastra.display();
         while(SchimbaValoarea.isOpen())
         {
@@ -501,20 +622,22 @@ int main()
             {
                 if (event2.type == Event::Closed)
                 {
-                    SchimbaValoarea.close();
                     DeschisFereastraSchimbaValoarea=false;
                     FereastraCurentaID=1;
+                    GolesteToateSpatiileDeScrisDinFereastraSecundara();
                     IndiceButonSelectat=-1;
-                    StergeElementeleDinFereastraSecundara();
+                    SchimbaValoarea.close();
                 }
                 VerificaTextIntrodusTastatura(event2);
             }
             SchimbaValoarea.clear();
             VerificaDacaButoaneleSuntSelectate();
             VerificaDacaTextulEsteSelectat();
+            VerificaTastaEnterCandTextulEsteIntrodus();
             SchimbaValoarea.draw(ImagineFundal);
             DeseneazaButoane();
             DeseneazaSpatiiScris();
+            SchimbaValoarea.draw(ValoarePrecedenta);
             DeseneazaTexteleStatice();
             SchimbaValoarea.display();
         }
