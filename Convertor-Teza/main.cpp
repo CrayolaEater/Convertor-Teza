@@ -6,16 +6,20 @@
 using namespace std;
 using namespace sf;
 fstream ConfigInput;
-enum Marime{Bacnota,Dimensiune,Volum,FaraMasura};
+enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade};
 float ValoareNouaConvertor;
 RenderWindow Fereastra, SchimbaValoarea;
 Font FontButoane;
 Text ValoarePrecedenta,TipMasura;
+Time timp;
+Clock ceas;
+Uint8 r,g,b,a;
+Sprite Logoul;
 Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
-bool DeschisFereastraSchimbaValoarea,EsteButon;
-int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1;
+bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo;
 string TText;
 class Buton;
 class SpatiuDestinatTextului;
@@ -28,6 +32,7 @@ vector<TexteStaticee> TexteStatice;
 vector<Buton> Butoane;
 vector<SpatiuDestinatTextului> SpatiiDeScrisText;
 vector<float>ValoriConvertor;
+Texture Logo[10];
 class SpatiuDestinatTextului
 {
 private:
@@ -283,6 +288,10 @@ void VerificaTipulMasuriiButoanelor(int indice)
         else if(Butoane[indice].TipMarime==Dimensiune)
         {
             TipMasura.setString("Metri");
+        }
+        else if(Butoane[indice].TipMarime==Grade)
+        {
+            TipMasura.setString("Grade");
         }
     }
 }
@@ -558,6 +567,7 @@ void SeteazaOValoareNouaInConvertor()
     ModificaValoareInConvertor(PozitieValoareDeModificat,ValoareNouaConvertor);
     ActualizeazaValorileButoanelor();
     SchimbaValoarea.close();
+    DeschisFereastraSchimbaValoarea=false;
 }
 void SeteazaTextValoarePrecedentaConvertor()
 {
@@ -572,6 +582,66 @@ void SeteazaTextValoarePrecedentaConvertor()
     ValoarePrecedenta.setFillColor(Color::Green);
     ValoarePrecedenta.setPosition(Vector2f(40,30));
 }
+void RotesteLogoul()
+{
+    IndiceLogo++;
+    if(IndiceLogo>9)
+    {
+        IndiceLogo=0;
+    }
+    Logoul.setTexture(Logo[IndiceLogo]);
+}
+void SchimbaCuloareaFundal()
+{
+
+        timp=ceas.getElapsedTime();
+        Event event;
+        //cout<<timp.asSeconds()<<endl;
+        if(timp.asSeconds()>=0.1)
+        {
+            ceas.restart();
+            if(!SchimbatCuloareFundal)
+            {
+                a++;
+                g++;
+                r++;
+                b++;
+                if(g>=250)
+                {
+                    SchimbatCuloareFundal=true;
+                }
+            }
+            else
+            {
+                a--;
+                g--;
+                r--;
+                b--;
+                if(g<=25)
+                {
+                    SchimbatCuloareFundal=false;
+                }
+            }
+            RotesteLogoul();
+            ImagineFundal.setColor(Color(r,g,b));
+        }
+}
+void CitesteLogourile()
+{
+    Texture textur;
+    Logo[0].loadFromFile("Logouri/Logo-0.png");
+    Logo[1].loadFromFile("Logouri/Logo-1.png");
+    Logo[2].loadFromFile("Logouri/Logo-2.png");
+    Logo[3].loadFromFile("Logouri/Logo-3.png");
+    Logo[4].loadFromFile("Logouri/Logo-4.png");
+    Logo[5].loadFromFile("Logouri/Logo-5.png");
+    Logo[6].loadFromFile("Logouri/Logo-6.png");
+    Logo[7].loadFromFile("Logouri/Logo-7.png");
+    Logo[8].loadFromFile("Logouri/Logo-8.png");
+    Logo[9].loadFromFile("Logouri/Logo-9.png");
+    Logoul.setPosition(550,20);
+    Logoul.scale(0.07,0.07);
+}
 int main()
 {
     FontButoane.loadFromFile("BALLSONTHERAMPAGE.ttf");
@@ -580,11 +650,12 @@ int main()
     CitesteValoriConvertor();
     ModificaValoareInConvertor(2,3.3333);
     ImagineFundal.setScale(Vector2f(0.9,.8));
-    Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_euro.png",0,1,Bacnota);
+    Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_euro.png",0,1,Bacnota);
     //Buton B_Euro2=CreezaButon(1,1, 200,70,"0.000",30,10,0,Click2,"butoane/buton_euro.png",0,2);
-    Buton B_Dolar=CreezaButon(220,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_dolar.png",1,1,Bacnota);
-    Buton B_LiraSterlina=CreezaButon(430,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_lira.png",2,1,Bacnota);
-    Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/buton_franc.png",3,1,Bacnota);
+    Buton B_Dolar=CreezaButon(220,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_dolar.png",1,1,Bacnota);
+    Buton B_LiraSterlina=CreezaButon(430,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_lira.png",2,1,Bacnota);
+    Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_franc.png",3,1,Bacnota);
+    Buton B_Celsius=CreezaButon(10,285, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Grade/buton_celsius.jpg",4,1,Grade);
     SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
@@ -592,10 +663,12 @@ int main()
     Fereastra.create(VideoMode(840,800),"Converter");
     SeteazaTextValoarePrecedentaConvertor();
     ActualizeazaValorileButoanelor();
+    CitesteLogourile();
     while (Fereastra.isOpen())
     {
-        Event event;
+        SchimbaCuloareaFundal();
         PozitieMouse=Mouse::getPosition(Fereastra);
+        Event event;
         while (Fereastra.pollEvent(event))
         {
             if (event.type == Event::Closed)
@@ -613,9 +686,11 @@ int main()
         DeseneazaSpatiiScris();
         DeseneazaTexteleStatice();
         Fereastra.draw(TipMasura);
+        Fereastra.draw(Logoul);
         Fereastra.display();
         while(SchimbaValoarea.isOpen())
         {
+            SchimbaCuloareaFundal();
             PozitieMouse=Mouse::getPosition(SchimbaValoarea);
             Event event2;
             while (SchimbaValoarea.pollEvent(event2))
