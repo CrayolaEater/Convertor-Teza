@@ -13,13 +13,13 @@ Font FontButoane;
 Text ValoarePrecedenta,TipMasura;
 Time timp;
 Clock ceas;
-Uint8 r,g,b,a;
-Sprite Logoul;
+Uint8 r,g,b;
+Sprite Logoul, Meniu;
 Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
-bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal;
-int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo;
+bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal,EsteMeniul=true,ApasatTastaInMeniu;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo,IndiceMeniu=1;
 string TText;
 class Buton;
 class SpatiuDestinatTextului;
@@ -32,7 +32,7 @@ vector<TexteStaticee> TexteStatice;
 vector<Buton> Butoane;
 vector<SpatiuDestinatTextului> SpatiiDeScrisText;
 vector<float>ValoriConvertor;
-Texture Logo[10];
+Texture Logo[10], MeniuSpriteuri[26];
 class SpatiuDestinatTextului
 {
 private:
@@ -297,92 +297,101 @@ void VerificaTipulMasuriiButoanelor(int indice)
 }
 void VerificaDacaButoaneleSuntSelectate()
 {
-    bool ok=false;
-    for(int i=0; i<Butoane.size(); i++)
+    if(!EsteMeniul)
     {
-        if(Butoane[i].MouseEstePeste())
+        bool ok=false;
+        for(int i=0; i<Butoane.size(); i++)
         {
-            ok=true;
-            VerificaTipulMasuriiButoanelor(i);
-            if(Mouse::isButtonPressed(Mouse::Left)&&!Butoane[i].Apasat)
+            if(Butoane[i].MouseEstePeste())
             {
-                IndiceButonSelectat=i;
-                Butoane[i].CandFacemClick();
-                Butoane[i].Apasat=true;
+                ok=true;
+                VerificaTipulMasuriiButoanelor(i);
+                if(Mouse::isButtonPressed(Mouse::Left)&&!Butoane[i].Apasat)
+                {
+                    IndiceButonSelectat=i;
+                    Butoane[i].CandFacemClick();
+                    Butoane[i].Apasat=true;
+                }
+                else if(!Mouse::isButtonPressed(Mouse::Left))
+                {
+                    IndiceButonSelectat=-1;
+                    Butoane[i].Apasat=false;
+                }
             }
-            else if(!Mouse::isButtonPressed(Mouse::Left))
+            else
             {
                 IndiceButonSelectat=-1;
                 Butoane[i].Apasat=false;
             }
-        }
-        else
-        {
-            IndiceButonSelectat=-1;
-            Butoane[i].Apasat=false;
-        }
-        if(!ok)
-        {
-            TipMasura.setString("");
+            if(!ok)
+            {
+                TipMasura.setString("");
+            }
         }
     }
 }
 void VerificaDacaTextulEsteSelectat()
 {
-    for(int i=0; i<SpatiiDeScrisText.size(); i++)
+    if(!EsteMeniul)
     {
-        if(SpatiiDeScrisText[i].MouseEstePeste())
+        for(int i=0; i<SpatiiDeScrisText.size(); i++)
         {
-            if(Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
+            if(SpatiiDeScrisText[i].MouseEstePeste())
             {
-                SpatiulDeTextCurentSelectat=i;
-                SpatiiDeScrisText[i].MouseClick();
-                if(SpatiiDeScrisText[i].TextScris.size()==0)
+                if(Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
                 {
-                    TText.erase(TText.begin(),TText.end());
+                    SpatiulDeTextCurentSelectat=i;
+                    SpatiiDeScrisText[i].MouseClick();
+                    if(SpatiiDeScrisText[i].TextScris.size()==0)
+                    {
+                        TText.erase(TText.begin(),TText.end());
+                    }
+                    else
+                    {
+                        TText=SpatiiDeScrisText[i].TextScris;
+                    }
                 }
-                else
+                else if(!Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
                 {
-                    TText=SpatiiDeScrisText[i].TextScris;
+                    SpatiiDeScrisText[i].Normal();
                 }
             }
-            else if(!Mouse::isButtonPressed(Mouse::Left)&&!SpatiiDeScrisText[i].Apasat)
+            else
             {
-                SpatiiDeScrisText[i].Normal();
-            }
-        }
-        else
-        {
-            if(!SpatiiDeScrisText[i].Apasat)
-            {
-                SpatiiDeScrisText[i].Normal();
+                if(!SpatiiDeScrisText[i].Apasat)
+                {
+                    SpatiiDeScrisText[i].Normal();
+                }
             }
         }
     }
 }
 void VerificaTextIntrodusTastatura(Event event)
 {
-    if (event.type == Event::TextEntered)
+    if(!EsteMeniul)
     {
-        if ((event.text.unicode <= 57&& event.text.unicode>=48 && SpatiulDeTextCurentSelectat>-1)||(SpatiulDeTextCurentSelectat>-1&&event.text.unicode==46)||(SpatiulDeTextCurentSelectat>-1&&event.text.unicode==8))
+        if (event.type == Event::TextEntered)
         {
-            if(event.text.unicode==8&&TText.size()>0)
+            if ((event.text.unicode <= 57&& event.text.unicode>=48 && SpatiulDeTextCurentSelectat>-1)||(SpatiulDeTextCurentSelectat>-1&&event.text.unicode==46)||(SpatiulDeTextCurentSelectat>-1&&event.text.unicode==8))
             {
-                TText.erase(TText.size()-1,1);
-                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
-                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
-                return;
-            }
-            if(TText.size()<=MaxCharactereTextIntrodus)
-            {
-                if(event.text.unicode!=8)
+                if(event.text.unicode==8&&TText.size()>0)
                 {
-                    TText+=static_cast<char>(event.text.unicode);
+                    TText.erase(TText.size()-1,1);
+                    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
+                    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
+                    return;
                 }
-                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
-                SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
+                if(TText.size()<=MaxCharactereTextIntrodus)
+                {
+                    if(event.text.unicode!=8)
+                    {
+                        TText+=static_cast<char>(event.text.unicode);
+                    }
+                    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
+                    SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
+                }
+                //cout << "ASCII character typed: " << static_cast<char>(event.text.unicode) << std::endl;
             }
-            //cout << "ASCII character typed: " << static_cast<char>(event.text.unicode) << std::endl;
         }
     }
 }
@@ -591,44 +600,72 @@ void RotesteLogoul()
     }
     Logoul.setTexture(Logo[IndiceLogo]);
 }
+void AnimatieMeniu()
+{
+    if(EsteMeniul)
+    {
+        Meniu.setTexture(MeniuSpriteuri[IndiceMeniu]);
+        IndiceMeniu++;
+        if(!ApasatTastaInMeniu)
+        {
+            if(IndiceMeniu>21)
+            {
+                IndiceMeniu=1;
+            }
+        }
+        else
+        {
+            if(IndiceMeniu>26)
+            {
+                EsteMeniul=false;
+                IndiceMeniu=26;
+            }
+        }
+    }
+}
 void SchimbaCuloareaFundal()
 {
 
-        timp=ceas.getElapsedTime();
-        Event event;
-        //cout<<timp.asSeconds()<<endl;
-        if(timp.asSeconds()>=0.1)
+    timp=ceas.getElapsedTime();
+    Event event;
+    //cout<<timp.asSeconds()<<endl;
+    if(timp.asSeconds()>=0.1)
+    {
+        ceas.restart();
+        if(!SchimbatCuloareFundal&&!EsteMeniul)
         {
-            ceas.restart();
-            if(!SchimbatCuloareFundal)
+            g++;
+            r++;
+            b++;
+            if(g>=250)
             {
-                a++;
-                g++;
-                r++;
-                b++;
-                if(g>=250)
-                {
-                    SchimbatCuloareFundal=true;
-                }
+                SchimbatCuloareFundal=true;
             }
-            else
+        }
+        else
+        {
+            g--;
+            r--;
+            b--;
+            if(g<=25)
             {
-                a--;
-                g--;
-                r--;
-                b--;
-                if(g<=25)
-                {
-                    SchimbatCuloareFundal=false;
-                }
+                SchimbatCuloareFundal=false;
             }
+        }
+        if(!EsteMeniul)
+        {
             RotesteLogoul();
             ImagineFundal.setColor(Color(r,g,b));
         }
+        else
+        {
+            AnimatieMeniu();
+        }
+    }
 }
 void CitesteLogourile()
 {
-    Texture textur;
+    Texture textur,textur2;
     Logo[0].loadFromFile("Logouri/Logo-0.png");
     Logo[1].loadFromFile("Logouri/Logo-1.png");
     Logo[2].loadFromFile("Logouri/Logo-2.png");
@@ -641,6 +678,35 @@ void CitesteLogourile()
     Logo[9].loadFromFile("Logouri/Logo-9.png");
     Logoul.setPosition(550,20);
     Logoul.scale(0.07,0.07);
+    MeniuSpriteuri[1].loadFromFile("Meniu/Meniu_1.png");
+    MeniuSpriteuri[2].loadFromFile("Meniu/Meniu_2.png");
+    MeniuSpriteuri[3].loadFromFile("Meniu/Meniu_3.png");
+    MeniuSpriteuri[4].loadFromFile("Meniu/Meniu_4.png");
+    MeniuSpriteuri[5].loadFromFile("Meniu/Meniu_5.png");
+    MeniuSpriteuri[6].loadFromFile("Meniu/Meniu_6.png");
+    MeniuSpriteuri[7].loadFromFile("Meniu/Meniu_7.png");
+    MeniuSpriteuri[8].loadFromFile("Meniu/Meniu_8.png");
+    MeniuSpriteuri[9].loadFromFile("Meniu/Meniu_9.png");
+    MeniuSpriteuri[10].loadFromFile("Meniu/Meniu_10.png");
+    MeniuSpriteuri[11].loadFromFile("Meniu/Meniu_11.png");
+    MeniuSpriteuri[12].loadFromFile("Meniu/Meniu_12.png");
+    MeniuSpriteuri[13].loadFromFile("Meniu/Meniu_13.png");
+    MeniuSpriteuri[14].loadFromFile("Meniu/Meniu_14.png");
+    MeniuSpriteuri[15].loadFromFile("Meniu/Meniu_15.png");
+    MeniuSpriteuri[16].loadFromFile("Meniu/Meniu_16.png");
+    MeniuSpriteuri[17].loadFromFile("Meniu/Meniu_17.png");
+    MeniuSpriteuri[18].loadFromFile("Meniu/Meniu_18.png");
+    MeniuSpriteuri[19].loadFromFile("Meniu/Meniu_19.png");
+    MeniuSpriteuri[20].loadFromFile("Meniu/Meniu_20.png");
+    MeniuSpriteuri[21].loadFromFile("Meniu/Meniu_21.png");
+    MeniuSpriteuri[22].loadFromFile("Meniu/Meniu_22.png");
+    MeniuSpriteuri[23].loadFromFile("Meniu/Meniu_23.png");
+    MeniuSpriteuri[24].loadFromFile("Meniu/Meniu_24.png");
+    MeniuSpriteuri[25].loadFromFile("Meniu/Meniu_25.png");
+    MeniuSpriteuri[26].loadFromFile("Meniu/Meniu_26.png");
+    Meniu.setPosition(0,0);
+    Meniu.setTexture(MeniuSpriteuri[1]);
+    Meniu.scale(0.823,0.74);
 }
 int main()
 {
@@ -651,11 +717,13 @@ int main()
     ModificaValoareInConvertor(2,3.3333);
     ImagineFundal.setScale(Vector2f(0.9,.8));
     Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_euro.png",0,1,Bacnota);
-    //Buton B_Euro2=CreezaButon(1,1, 200,70,"0.000",30,10,0,Click2,"butoane/buton_euro.png",0,2);
     Buton B_Dolar=CreezaButon(220,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_dolar.png",1,1,Bacnota);
     Buton B_LiraSterlina=CreezaButon(430,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_lira.png",2,1,Bacnota);
     Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_franc.png",3,1,Bacnota);
     Buton B_Celsius=CreezaButon(10,285, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Grade/buton_celsius.jpg",4,1,Grade);
+    Buton B_Kelvin=CreezaButon(220,285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_kelvin.jpg", 5, 1, Grade);
+    Buton B_Fahrenheit=CreezaButon(430, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_fahrenheit.jpg", 6, 1, Grade);
+    Buton B_Rankine=CreezaButon(640, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_rankine.jpg", 7, 1, Grade);
     SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
@@ -675,6 +743,11 @@ int main()
             {
                 Fereastra.close();
             }
+            if(event.type==Event::KeyPressed&&EsteMeniul)
+            {
+                ApasatTastaInMeniu=true;
+                IndiceMeniu=21;
+            }
             VerificaTextIntrodusTastatura(event);
         }
         Fereastra.clear();
@@ -687,6 +760,10 @@ int main()
         DeseneazaTexteleStatice();
         Fereastra.draw(TipMasura);
         Fereastra.draw(Logoul);
+        if(EsteMeniul)
+        {
+            Fereastra.draw(Meniu);
+        }
         Fereastra.display();
         while(SchimbaValoarea.isOpen())
         {
