@@ -6,7 +6,7 @@
 using namespace std;
 using namespace sf;
 fstream ConfigInput;
-enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade};
+enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade,Greutate, Lungime, Presiune};
 float ValoareNouaConvertor;
 RenderWindow Fereastra, SchimbaValoarea;
 Font FontButoane;
@@ -285,13 +285,21 @@ void VerificaTipulMasuriiButoanelor(int indice)
         {
             TipMasura.setString("RON");
         }
-        else if(Butoane[indice].TipMarime==Dimensiune)
-        {
-            TipMasura.setString("Metri");
-        }
         else if(Butoane[indice].TipMarime==Grade)
         {
             TipMasura.setString("Grade");
+        }
+        else if(Butoane[indice].TipMarime==Greutate)
+        {
+            TipMasura.setString("Kg");
+        }
+        else if(Butoane[indice].TipMarime==Lungime)
+        {
+            TipMasura.setString("Metri");
+        }
+        else if(Butoane[indice].TipMarime==Presiune)
+        {
+            TipMasura.setString("mmHg");
         }
     }
 }
@@ -724,6 +732,21 @@ int main()
     Buton B_Kelvin=CreezaButon(220,285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_kelvin.jpg", 5, 1, Grade);
     Buton B_Fahrenheit=CreezaButon(430, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_fahrenheit.jpg", 6, 1, Grade);
     Buton B_Rankine=CreezaButon(640, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_rankine.jpg", 7, 1, Grade);
+    Buton B_Pounds=CreezaButon(10, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_pounds.jpg", 8, 1, Greutate);
+    Buton B_Carats=CreezaButon(220, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_carats.jpg", 9, 1, Greutate);
+    Buton B_Ounces=CreezaButon(430, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_ounces.jpg", 10, 1, Greutate);
+    Buton B_Stone=CreezaButon(640, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_stone.jpg", 11, 1, Greutate);
+    Buton B_Feet=CreezaButon(10, 455, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Lungimi/buton_feet.jpg", 12, 1, Lungime);
+    Buton B_Miles=CreezaButon(220, 455, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Lungimi/buton_miles.jpg", 13, 1, Lungime);
+    Buton B_Inch=CreezaButon(430, 455, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Lungimi/buton_inch.jpg", 14, 1, Lungime);
+    Buton B_Yards=CreezaButon(640, 455, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Lungimi/buton_yards.jpg", 15, 1, Lungime);
+    Buton B_Atmosfere=CreezaButon(10, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_atmosfere.jpg", 16, 1, Presiune);
+    Buton B_Bari=CreezaButon(220, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_bari.jpg", 17, 1, Presiune);
+    Buton B_Pascali=CreezaButon(430, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_pascali.jpg", 18, 1, Presiune);
+    Buton B_Psi=CreezaButon(640, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_poundspersquareinch.jpg", 19, 1, Presiune);
+
+
+
     SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
