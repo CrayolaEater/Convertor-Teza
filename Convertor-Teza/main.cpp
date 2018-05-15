@@ -6,7 +6,7 @@
 using namespace std;
 using namespace sf;
 fstream ConfigInput;
-enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade,Greutate, Lungime, Presiune};
+enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade,Greutate, Lungime, Presiune,Suprafata};
 float ValoareNouaConvertor;
 RenderWindow Fereastra, SchimbaValoarea;
 Font FontButoane;
@@ -18,8 +18,8 @@ Sprite Logoul, Meniu;
 Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
-bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal,EsteMeniul=true,ApasatTastaInMeniu;
-int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo,IndiceMeniu=1;
+bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal,EsteMeniul=true,ApasatTastaInMeniu,CautatButonuDeAdaugat;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo,IndiceMeniu=1,IndiceButonNou,IndiceButonDeAdaugare;
 string TText;
 class Buton;
 class SpatiuDestinatTextului;
@@ -28,6 +28,13 @@ struct TexteStaticee
     Text text;
     int FereastraID;
 };
+struct Pozitie
+{
+    int x;
+    int x_buton;
+    int y;
+};
+Pozitie PozitiiButoaneAdaugate[4];
 vector<TexteStaticee> TexteStatice;
 vector<Buton> Butoane;
 vector<SpatiuDestinatTextului> SpatiiDeScrisText;
@@ -187,6 +194,11 @@ public:
         Fereastra.draw(FormaButon);
         Fereastra.draw(text);
     }
+    void Muta(int x, int y)
+    {
+        FormaButon.setPosition(x,y);
+        CreazaTextul();
+    }
     void DeseneazaButon2()
     {
         SchimbaValoarea.draw(FormaButon);
@@ -300,6 +312,10 @@ void VerificaTipulMasuriiButoanelor(int indice)
         else if(Butoane[indice].TipMarime==Presiune)
         {
             TipMasura.setString("mmHg");
+        }
+        else if(Butoane[indice].TipMarime==Suprafata)
+        {
+            TipMasura.setString("Metri Patrati");
         }
     }
 }
@@ -716,12 +732,46 @@ void CitesteLogourile()
     Meniu.setTexture(MeniuSpriteuri[1]);
     Meniu.scale(0.823,0.74);
 }
+void SeteazaPozitiiileButoanelorDeAdaugatButoane()
+{
+    PozitiiButoaneAdaugate[0].x=77;
+    PozitiiButoaneAdaugate[0].y=PozitiiButoaneAdaugate[1].y=PozitiiButoaneAdaugate[2].y=PozitiiButoaneAdaugate[3].y=720;
+    PozitiiButoaneAdaugate[1].x=300;
+    PozitiiButoaneAdaugate[2].x=500;
+    PozitiiButoaneAdaugate[3].x=700;
+}
+void AdaugaUnButonPersonalizabil()
+{
+    if(!CautatButonuDeAdaugat)
+    {
+        for(int i =0; i<Butoane.size();i++)
+        {
+            if(Butoane[i].FereastraID==1&&Butoane[i].IndiceValoare==-5)
+            {
+                IndiceButonDeAdaugare=i;
+                CautatButonuDeAdaugat=true;
+                break;
+            }
+        }
+    }
+    IndiceButonNou++;
+    Butoane[IndiceButonDeAdaugare].Muta(PozitiiButoaneAdaugate[IndiceButonNou].x,PozitiiButoaneAdaugate[IndiceButonNou].y);
+}
+void Nimic()
+{
+
+}
+void CreeazaButoanePersonalizabile()
+{
+   // SpatiuDestinatTextului Sp=CreeazaSpatiuPentruScris(pos_x+5,pos_y+lat-5,30,5,Color::Cyan,pos_x+8,pos_y+lat-3,Nimic,10,"butoane/LocScris_imagine.png",1);
+}
 int main()
 {
     FontButoane.loadFromFile("BALLSONTHERAMPAGE.ttf");
     ImgFundal.loadFromFile("imagine_fundal.png");
     ImagineFundal.setTexture(ImgFundal);
     CitesteValoriConvertor();
+    SeteazaPozitiiileButoanelorDeAdaugatButoane();
     ModificaValoareInConvertor(2,3.3333);
     ImagineFundal.setScale(Vector2f(0.9,.8));
     Buton B_Euro=CreezaButon(10,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_euro.png",0,1,Bacnota);
@@ -744,9 +794,13 @@ int main()
     Buton B_Bari=CreezaButon(220, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_bari.jpg", 17, 1, Presiune);
     Buton B_Pascali=CreezaButon(430, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_pascali.jpg", 18, 1, Presiune);
     Buton B_Psi=CreezaButon(640, 540, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Presiune/buton_poundspersquareinch.jpg", 19, 1, Presiune);
-
-
-
+    Buton B_Acres=CreezaButon(10, 625, 200, 70, "0.000", 30, 10 , 0, ClickSaModificeValoareConvertor, "butoane/Suprafata/buton_acres.jpg", 20, 1, Suprafata);
+    Buton B_Hectare=CreezaButon(220, 625, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Suprafata/buton_hectare.jpg", 21, 1, Suprafata);
+    Buton B_Sf=CreezaButon(430, 625, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Suprafata/buton_square_feet.jpg", 22, 1, Suprafata);
+    Buton B_Sy=CreezaButon(640, 625, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Suprafata/buton_square_yards.jpg", 23, 1, Suprafata);
+    Buton Adaugare1=CreezaButon(77,720,50,50,"",0,0,0,AdaugaUnButonPersonalizabil,"butoane/AdaugareButon.png",-5,1,FaraMasura);
+    Buton Personal1=CreezaButon(10,700,200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/ButonPersonalizabil.png",24,1,FaraMasura);
+    SpatiuDestinatTextului Sp=CreeazaSpatiuPentruScris(13,735,100,30,Color::Cyan,5,0,Nimic,40,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,400,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
