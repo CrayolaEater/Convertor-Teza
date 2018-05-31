@@ -329,6 +329,7 @@ void VerificaTipulMasuriiButoanelor(int indice)
         }
     }
 }
+void InverseazaMasura(int indice);
 void VerificaDacaButoaneleSuntSelectate()
 {
     if(!EsteMeniul)
@@ -336,7 +337,7 @@ void VerificaDacaButoaneleSuntSelectate()
         bool ok=false;
         for(int i=0; i<Butoane.size(); i++)
         {
-            if(Butoane[i].MouseEstePeste())
+            if(Butoane[i].MouseEstePeste()&&Butoane[i].Activ)
             {
                 ok=true;
                 VerificaTipulMasuriiButoanelor(i);
@@ -464,41 +465,45 @@ void CitesteValoriConvertor()
     float valoare;
     bool activ=false;
     string c;
-    for(int i =0 ; i<25;i++)
+    for(int i =0 ; i<24;i++)
     {
         ConfigInput>>valoare;
         ValoriConvertor.push_back(valoare);
     }
-    while(ConfigInput>>valoare>>c>>activ)
+    for(int i=0; i<4;i++)
     {
+        ConfigInput>>valoare>>c>>activ;
         ValoriConvertor.push_back(valoare);
         ButonCustom ccc;
         ccc.Cale=c;
         ccc.activ=activ;
         ButoaneCustomCitite.push_back(ccc);
     }
+    ConfigInput>>IndiceButonNou;
     ConfigInput.close();
     ConfigInput.clear();
 }
 void AfiseazaValoriConvertor()
 {
     ConfigInput.open("Config.in",ios::out);
-    for(int i =0; i<25; i++)
+    for(int i =0; i<24; i++)
     {
         ConfigInput<<ValoriConvertor[i]<<'\n';
     }
     int j=0;
-    for(int i=25;i<ValoriConvertor.size();i++)
+    for(int i=24;i<ValoriConvertor.size();i++)
     {
         ConfigInput<<ValoriConvertor[i]<<" "<<ButoaneCustomCitite[j].Cale<<" "<<ButoaneCustomCitite[j].activ<<'\n';
         j++;
     }
+    ConfigInput<<IndiceButonNou;
     ConfigInput.close();
 }
 void VerificaDacaTextulIntrodusEsteCorect()
 {
     string Aux;
     int c=0;
+    bool ok=false;
     for(int i =0; i<TText.size(); i++)
     {
         if(TText[i]>=48&&TText[i]<=57)
@@ -510,9 +515,22 @@ void VerificaDacaTextulIntrodusEsteCorect()
                 break;
             }
         }
+        else if(TText[i]=='.'&&!ok)
+        {
+            ok=true;
+            Aux.push_back(TText[i]);
+            c++;
+            if(c>MaxCharactereTextIntrodus)
+            {
+                break;
+            }
+        }
     }
     TText=Aux;
-    TText+=".0";
+    if(!ok)
+    {
+        TText+=".0";
+    }
     SpatiiDeScrisText[SpatiulDeTextCurentSelectat].TextScris=TText;
     SpatiiDeScrisText[SpatiulDeTextCurentSelectat].ActualizeazaTextul();
 }
@@ -767,14 +785,32 @@ void CitesteLogourile()
 }
 void CreeazaButoanePersonalizabile()
 {
-    if(IndiceButonDeAdaugare<28)
+    if(IndiceButonDeAdaugare+IndiceButonNou<28)
     {
         string c="butoane/Custom/";
-        Butoane[IndiceButonDeAdaugare].SeteazaImagineButon(c+TText);
-        Butoane[IndiceButonDeAdaugare].Activ=true;
-        IndiceButonDeAdaugare++;
+        cout<<IndiceButonDeAdaugare+IndiceButonNou<<endl;
+        Butoane[IndiceButonDeAdaugare+IndiceButonNou].SeteazaImagineButon(c+TText);
+        Butoane[IndiceButonDeAdaugare+IndiceButonNou].Activ=true;
+        ButoaneCustomCitite[IndiceButonNou].Cale=c+TText;
         ButoaneCustomCitite[IndiceButonNou].activ=true;
         IndiceButonNou++;
+    }
+}
+void StergeButon()
+{
+    if(IndiceButonNou<=0)
+    {
+        return;
+    }
+    for(int i=Butoane.size()-1;i>=0;i--)
+    {
+        if(Butoane[i].Custom&&Butoane[i].Activ)
+        {
+            Butoane[i].Activ=false;
+            IndiceButonNou--;
+            ButoaneCustomCitite[IndiceButonNou].activ=false;
+            return;
+        }
     }
 }
 int main()
@@ -820,11 +856,13 @@ int main()
     Buton Custom4=CreezaButon(640,710,200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,ButoaneCustomCitite[3].Cale,27,1,Suprafata);
     Butoane[Butoane.size()-1].Activ=ButoaneCustomCitite[3].activ;
     Butoane[Butoane.size()-1].Custom=true;
+    Buton StergeButonul=CreezaButon(700, 150, 40, 40, "", 30, 10, 0, StergeButon, "butoane/Gunoi.png", -1, 1, FaraMasura);
     SpatiuDestinatTextului TextPtValoriDeIntrodus=CreeazaSpatiuPentruScris(10, 150,250,40,Color::Blue,20,0,FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoriPtCaleImagine=CreeazaSpatiuPentruScris(400, 150,300,40,Color::Blue,20,0,CreeazaButoanePersonalizabile,33,"butoane/LocScris_imagine.png",1);
     SpatiuDestinatTextului ValoareNouaIntrodusaMarime=CreeazaSpatiuPentruScris(3,85,250,30,Color::Blue,5,-5,SeteazaOValoareNouaInConvertor,30,"butoane/LocScris_imagine.png",2);
     CreeazaStaticText(30,117,35,"Valoare:",Color::White,1);
     CreeazaStaticText(250,1,80,"Converter",Color::White,1);
+    CreeazaStaticText(450,117,35,"Masura noua:",Color::White,1);
     Fereastra.create(VideoMode(840,800),"Converter");
     SeteazaTextValoarePrecedentaConvertor();
     ActualizeazaValorileButoanelor();
@@ -892,6 +930,10 @@ int main()
             DeseneazaTexteleStatice();
             SchimbaValoarea.display();
         }
+    }
+    for(int i=25; i<Butoane.size();i++)
+    {
+        cout<<Butoane[i].caleImagine<<endl;
     }
     AfiseazaValoriConvertor();
     return 0;
