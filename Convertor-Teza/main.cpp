@@ -6,8 +6,8 @@
 using namespace std;
 using namespace sf;
 fstream ConfigInput;
-enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade,Greutate, Lungime, Presiune,Suprafata};
-float ValoareNouaConvertor;
+enum Marime {Bacnota,Dimensiune,Volum,FaraMasura,Grade,Greutate, Lungime, Presiune,Suprafata,Fahrenheit};
+float ValoareNouaConvertor=1,ValoareIntrodusa;
 RenderWindow Fereastra, SchimbaValoarea;
 Font FontButoane;
 Text ValoarePrecedenta,TipMasura;
@@ -19,7 +19,7 @@ Texture ImgFundal;
 Sprite ImagineFundal;
 Vector2i PozitieMouse;
 bool DeschisFereastraSchimbaValoarea,EsteButon,SchimbatCuloareFundal,EsteMeniul=true,ApasatTastaInMeniu,CautatButonuDeAdaugat;
-int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo,IndiceMeniu=1,IndiceButonDeAdaugare=24,IndiceButonNou;
+int SpatiulDeTextCurentSelectat=-1, MaxCharactereTextIntrodus=6,FereastraCurentaID=1, PozitieValoareDeModificat,IndiceButonSelectat=-1,IndiceLogo,IndiceMeniu=1,IndiceButonDeAdaugare=24,IndiceButonNou,IndiceButonDeModificat;
 string TText;
 class Buton;
 class SpatiuDestinatTextului;
@@ -307,7 +307,7 @@ void VerificaTipulMasuriiButoanelor(int indice)
         {
             TipMasura.setString("RON");
         }
-        else if(Butoane[indice].TipMarime==Grade)
+        else if(Butoane[indice].TipMarime==Grade||Butoane[indice].TipMarime==Fahrenheit)
         {
             TipMasura.setString("Grade");
         }
@@ -559,8 +559,10 @@ void ActualizeazaValorileButoanelor()
     }
 }
 void DeschideFereastraDeSchimbatValoarea();
+float StringToFloat(string sir);
 void ClickSaModificeValoareConvertor()
 {
+    ValoareIntrodusa=StringToFloat(TText);
     PozitieValoareDeModificat=Butoane[IndiceButonSelectat].IndiceValoare;
     //cout<<"butonul "<<IndiceButonSelectat<<" trebuie sa modifice valoarea de pe "<<Butoane[IndiceButonSelectat].IndiceValoare<<'\n';
     if(!DeschisFereastraSchimbaValoarea)
@@ -624,7 +626,18 @@ void RegulaDeTreiSimpla()
         {
             if(Butoane[i].FereastraID==1&&Butoane[i].IndiceValoare>=0)
             {
-                Butoane[i].text.setString(FloatToString(ValoriConvertor[Butoane[i].IndiceValoare]*ValoareNouaConvertor));
+                if(Butoane[i].TipMarime==Bacnota||Butoane[i].TipMarime==Greutate||Butoane[i].TipMarime==Lungime||Butoane[i].TipMarime==Presiune||Butoane[i].TipMarime==Dimensiune||Butoane[i].TipMarime==Suprafata)
+                {
+                    Butoane[i].text.setString(FloatToString(ValoriConvertor[Butoane[i].IndiceValoare]*ValoareNouaConvertor));
+                }
+                else if(Butoane[i].TipMarime==Grade)
+                {
+                    Butoane[i].text.setString(FloatToString(ValoriConvertor[Butoane[i].IndiceValoare]+ValoareNouaConvertor));
+                }
+                else if(Butoane[i].TipMarime==Fahrenheit)
+                {
+                    Butoane[i].text.setString(FloatToString(ValoareNouaConvertor*1.8+32));
+                }
                 //cout<<"Butonul "<<i<<" are indicele:"<<Butoane[i].IndiceValoare<<'\n';
             }
         }
@@ -632,13 +645,21 @@ void RegulaDeTreiSimpla()
 }
 void FaCevaCandAmApasatEnterDupaCeAmIntrdusTextul()
 {
-    VerificaDacaTextulIntrodusEsteCorect();
-    ValoareNouaConvertor=StringToFloat(TText);
+    if(TText.size()>0)
+    {
+        VerificaDacaTextulIntrodusEsteCorect();
+        ValoareNouaConvertor=StringToFloat(TText);
+    }
+    else
+    {
+        ValoareNouaConvertor=1;
+    }
     RegulaDeTreiSimpla();
     cout<<ValoareNouaConvertor<<endl;
 }
 void DeschideFereastraDeSchimbatValoarea()
 {
+    IndiceButonDeModificat=IndiceButonSelectat;
     ValoarePrecedenta.setString(FloatToString(ValoriConvertor[Butoane[IndiceButonSelectat].IndiceValoare]));
     SchimbaValoarea.create(VideoMode(300,300),"Schimba Valoarea");
     DeschisFereastraSchimbaValoarea=true;
@@ -826,7 +847,7 @@ int main()
     Buton B_FrancElvetian=CreezaButon(640,200, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Valute/buton_franc.png",3,1,Bacnota);
     Buton B_Celsius=CreezaButon(10,285, 200,70,"0.000",30,10,0,ClickSaModificeValoareConvertor,"butoane/Grade/buton_celsius.jpg",4,1,Grade);
     Buton B_Kelvin=CreezaButon(220,285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_kelvin.jpg", 5, 1, Grade);
-    Buton B_Fahrenheit=CreezaButon(430, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_fahrenheit.jpg", 6, 1, Grade);
+    Buton B_Fahrenheit=CreezaButon(430, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_fahrenheit.jpg", 6, 1, Fahrenheit);
     Buton B_Rankine=CreezaButon(640, 285, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Grade/buton_rankine.jpg", 7, 1, Grade);
     Buton B_Pounds=CreezaButon(10, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_pounds.jpg", 8, 1, Greutate);
     Buton B_Carats=CreezaButon(220, 370, 200, 70, "0.000", 30, 10, 0, ClickSaModificeValoareConvertor, "butoane/Greutate/buton_carats.jpg", 9, 1, Greutate);
