@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1528072069 source:c:\users\inculet\desktop\github\projects\convertor-teza\convertor-teza\main.cpp
+1528072136 source:c:\users\inculet\desktop\github\projects\convertor-teza\convertor-teza\main.cpp
 	<SFML/Graphics.hpp>
 	<vector>
 	<fstream>
